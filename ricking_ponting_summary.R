@@ -21,8 +21,11 @@ not_out_innings <- dim(ricky_ponting_vi %>% filter(Dismissal %in% c('not out','r
 total_innings <- dim(ricky_ponting_vi)[1]
 # Now we cast the Runs as a numeric table
 ricky_ponting_vi <- ricky_ponting_vi %>%mutate_at(vars(Runs), as.numeric)
+ricky_ponting_vi <- ricky_ponting_vi %>%mutate_at(vars(SR), as.numeric)
 ricky_ponting_vi %>% summarise(runs_sum = sum(Runs), rpi = mean(Runs), 
                                  avg = sum(Runs)/(total_innings - not_out_innings))
 # Cumulative RPI
 ricky_ponting_rpi_cum <- dplyr::cummean(ricky_ponting_vi$Runs)
 ricky_ponting_vi <- add_column(ricky_ponting_vi, rpi_cum = ricky_ponting_rpi_cum)
+
+ggplot(ricky_ponting_vi, aes(x=Runs, y=SR)) + geom_point(shape=1) + ylim(0,200)
