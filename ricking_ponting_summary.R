@@ -20,8 +20,8 @@ ricky_ponting_vi <- ricky_ponting %>% filter(Runs != 'DNB')
 not_out_innings <- dim(ricky_ponting_vi %>% filter(Dismissal %in% c('not out','retired notout')))[1]
 total_innings <- dim(ricky_ponting_vi)[1]
 # Now we cast the Runs as a numeric table
-ricky_ponting_vi <- ricky_ponting_vi %>%mutate_at(vars(Runs), as.numeric)
-ricky_ponting_vi <- ricky_ponting_vi %>%mutate_at(vars(SR), as.numeric)
+ricky_ponting_vi <- ricky_ponting_vi %>%mutate_at(vars(2,7), as.numeric)
+# ricky_ponting_vi <- ricky_ponting_vi %>%mutate_at(vars(SR), as.numeric)
 ricky_ponting_vi %>% summarise(runs_sum = sum(Runs), rpi = mean(Runs), 
                                  avg = sum(Runs)/(total_innings - not_out_innings))
 # Cumulative RPI
