@@ -29,3 +29,4 @@ ricky_ponting_rpi_cum <- dplyr::cummean(ricky_ponting_vi$Runs)
 ricky_ponting_vi <- add_column(ricky_ponting_vi, rpi_cum = ricky_ponting_rpi_cum)
 
 ggplot(ricky_ponting_vi, aes(x=Runs, y=SR)) + geom_point(shape=1) + ylim(0,200)
+ggplot(ricky_ponting_vi, aes(x=InnsIndex, y=rpi_cum)) + geom_bar(stat="identity")
