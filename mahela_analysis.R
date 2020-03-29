@@ -1,0 +1,83 @@
+library(tidyverse)
+
+# Read the data
+mahela <- read_csv("data/mahela_innings.csv")
+# Drop 'DNB' rows
+mahela <- mahela %>% filter(!Runs %in% c('DNB', 'TDNB'))
+
+# The problem is that 'Runs' column has a '*' at the end if
+# he was not dismissed. We need to get rid of that
+# So we'll use the 'stringr' library to substitute '' for '*'
+mahela <- mahela %>% mutate(Runs = str_replace(Runs, c("[*]"), ""))
+
+# We need to recast the following columns as numerical
+# 4,5,6,7,8,9,10, 12
+mahela <- mahela %>% mutate_at(vars(4, 12), as.numeric)
+
+mahela_grouped <- mahela %>% 
+  summarise(rpi=mean(Runs))
+
+# Create the runs per innings column
+# Use the cumulative mean function in dplyr for this
+mahela <- mahela %>% 
+  mutate(cum_rpi = dplyr::cummean(Runs))
+
+# Say I want to plot time series data for batsmen
+# Then I want to convert the 'Date' column to a friendlier format
+mahela <- mahela %>% mutate(Date = as.Date(Date, format="%d %b %Y"))
+mahela <- mahela %>% mutate(Opposition = str_replace(Opposition, c("v "), ""))
+# Rename the 13th column 'Opposition' as 'Team'. So that we can join them
+colnames(mahela) [13] <- "Team"
+
+# Now let's try to calculate the batting average
+# First let's give the innings a status : out(0) or not out(1)
+mahela <- mahela %>% mutate(not_out_status = ifelse(Dismissal %in% c('not out','retired hurt'),1,0))
+
+# Introduce a new column with just ones (1)
+# This is to calculate the average as well
+mahela <- mutate(mahela, inning_one = 1)
+
+# What needs to be done now is, for each row
+# sum of the runs / (total innings - total not outs)
+mahela <- mahela %>% mutate(batting_average = cumsum(Runs)/(cumsum(inning_one)-cumsum(not_out_status)))
+
+# For plotting purposes add the sequence index
+mahela$inns_index = seq.int(nrow(mahela))
+
+# Plot mahela's runs per innings starting from his 20th innings
+mahela_rpi <- ggplot(mahela %>% slice(20:n()), aes(inns_index, cum_rpi)) + geom_line(color='#99bbff') + 
+  xlab("Innings Number") + ylab("Cumulate Runs per Innings") + 
+  ggtitle("Mahela Jayawardena's Test RPI through career") +
+  theme(plot.title=element_text(hjust=0.5))
+
+# Plot mahela's batting average starting from his 20th innings
+mahela_ba <- ggplot(mahela %>% slice(20:n()), aes(inns_index, batting_average)) + geom_line(color='#ff3377') + 
+  xlab("Innings Number") + ylab("Batting average") + 
+  ggtitle("Mahela Jayawardena's Test batting average through career") +
+  theme(plot.title=element_text(hjust=0.5))
+
+# Make these plots in the same graph
+# Use the gather function in dplyr
+mahela_both <- mahela %>% slice(20:n()) %>%
+  gather(key,value, batting_average, cum_rpi) %>%
+  ggplot(aes(x=inns_index, y=value, colour=key)) +
+  xlab("Innings Number") + ylab("Value") +
+  geom_line() + scale_color_manual(name="Stat",
+                                   values=c('#ff3377','#99bbff'),
+                                   labels=c("Batting Average","Runs per inning")) +
+  ggtitle("Mahela's Test batting average and RPI through career") +
+  theme(plot.title=element_text(hjust=0.5))
+
+# Bar plot for runs + colored by opposition
+mahela_innings<- ggplot(mahela, aes(x=inns_index,y=Runs,fill=Team)) + 
+  geom_bar(stat="identity") + scale_fill_discrete(name="Opposition") +
+  ggtitle("Mahela Jayawardena's Test innings colored by opposition") + 
+  xlab("Innings Number") + 
+  theme(plot.title=element_text(hjust=0.5))
+
+
+# Save these plots
+ggsave("figures/mahela_rpi.png",plot=mahela_rpi,dpi=300, width=8, height=6, units="in")
+ggsave("figures/mahela_ba.png",plot=mahela_ba,dpi=300, width=8, height=6, units="in")
+ggsave("figures/mahela_stats.png",plot=mahela_both,dpi=300, width=8, height=6, units="in")
+ggsave("figures/mahela_innings.png",plot=mahela_innings,dpi=300, width=10, height=7, units="in")

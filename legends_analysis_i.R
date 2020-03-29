@@ -1,7 +1,7 @@
 library(tidyverse)
 
 # Read the data
-legends <- read_csv("data/legends_batting.csv")
+legends <- read_csv("data/legends_batting_ver_2.csv")
 # Drop 'DNB' rows
 legends <- legends %>% filter(!Runs %in% c('DNB', 'TDNB'))
 # The problem is that 'Runs' column has a '*' at the end if
@@ -39,14 +39,15 @@ for (batsman_name in unique(legends$Name)){
 
 # Let's just say that for visual purposes I want to drop outlandish
 # cumulative RPI values
-legends <- legends %>% filter(cum_rpi<=60 & cum_rpi>=25)
-for (batsman_name in unique(legends$Name)){
-  batsman <- legends %>% filter(Name == batsman_name)
-  batsman_plot <- ggplot(batsman, aes(Date, cum_rpi)) + geom_line(size=0.25) +
-    xlab("Time") + ylab("Cumulative Runs per Innings") + 
-    xlim(as.Date(c("1989-01-01", "2014-12-30"))) +
-    ylim(25, 60) +
-    ggtitle(paste(batsman_name, "extremes removed"))
-  print(batsman_plot)
-}
+# legends <- legends %>% filter(cum_rpi<=60 & cum_rpi>=25)
+# for (batsman_name in unique(legends$Name)){
+#  batsman <- legends %>% filter(Name == batsman_name)
+#  batsman_plot <- ggplot(batsman, aes(Date, cum_rpi)) + geom_line(size=0.25) +
+#   xlab("Time") + ylab("Cumulative Runs per Innings") + 
+#    xlim(as.Date(c("1989-01-01", "2014-12-30"))) +
+#    ylim(25, 60) +
+#    ggtitle(paste(batsman_name, "extremes removed"))
+#  print(batsman_plot)
+#}
 
+write.csv(legends, file="data/legends_batting_formatted.csv")
